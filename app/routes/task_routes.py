@@ -39,10 +39,70 @@ def get_all_tasks():
                 "id": task.id,
                 "title": task.title,
                 "description": task.description,
-                "is_complete": False if task.completed_at is None else True 
+                "is_complete": is_complete(task.completed_at)
             }
         )
     return tasks_response, 200
 
-# 2. As a client, I want to be able to make a `GET` request to `/tasks` when there are zero saved tasks
+# As a client, I want to be able to make a `GET` request to `/tasks/1` when there is at least one saved task and get this response: 200 OK
 
+@tasks_bp.get("/<task_id>")
+def get_one_task(task_id):
+    task = validate_task(task_id)
+    
+    return {
+        "id": task.id,
+        "title": task.title,
+        "description": task.description,
+        "is_complete": is_complete(task.completed_at)
+    }
+
+
+
+
+@tasks_bp.put("/<task_id>")
+def update_task(task_id):
+    task = validate_task(task_id)
+    request_body = request.get_json()
+    task.title = request_body["title"]
+    task.description = request_body["description"]
+    db.session.commit()
+    response = {
+     "task": {
+        "id": task.id,
+        "title": task.title ,
+        "description": task.description ,
+        "is_complete": is_complete(task.completed_at)
+    }
+}
+    return response, 200
+
+@tasks_bp.delete("/<task_id>")
+def delete_task(task_id):
+    task = validate_task(task_id)
+    db.session.delete(task)
+    db.session.commit()
+    response = {
+        "details": "Task 1 \"Go on my daily walk 🏞\" successfully deleted"
+    }
+
+    return response, 200
+
+# Validation functions
+def is_complete(completed_at):
+    return False if completed_at is None else True
+
+def validate_task(task_id):
+    try:
+        task_id = int(task_id)
+    except:
+        response = {"message": f"task {task_id} invalid"}
+        abort(make_response(response , 400))
+
+    query = db.select(Task).where(Task.id == task_id)
+    task = db.session.scalar(query)
+
+    if not task:
+        response = {"message": f"task {task_id} not found"}
+        abort(make_response(response, 404))
+    return task, 200
