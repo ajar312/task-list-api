@@ -11,6 +11,12 @@ def create_task():
     description = request_body["description"]
     completed_at = request_body["completed_at"]
 
+    if title is None or description is None:
+        bad_request = {
+            "details": "Invalid data"
+        }
+        return bad_request, 400
+
     new_task = Task(title=title, description=description,completed_at=completed_at)
     db.session.add(new_task)
     db.session.commit()
@@ -49,13 +55,13 @@ def get_all_tasks():
 @tasks_bp.get("/<task_id>")
 def get_one_task(task_id):
     task = validate_task(task_id)
-    
-    return {
+    response = {
         "id": task.id,
         "title": task.title,
         "description": task.description,
         "is_complete": is_complete(task.completed_at)
     }
+    return response, 200
 
 
 
