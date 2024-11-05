@@ -9,7 +9,7 @@ def create_task():
     request_body = request.get_json()
     title = request_body["title"]
     description = request_body["description"]
-    completed_at = request_body["completed_at"]
+   
 
     if title is None or description is None:
         bad_request = {
@@ -17,7 +17,7 @@ def create_task():
         }
         return bad_request, 400
 
-    new_task = Task(title=title, description=description,completed_at=completed_at)
+    new_task = Task(title=title, description=description,completed_at=None)
     db.session.add(new_task)
     db.session.commit()
 
@@ -26,7 +26,7 @@ def create_task():
         "id": new_task.id,
         "title": new_task.title,
         "description": new_task.description,
-        "is_complete": new_task.completed_at
+        "is_complete": False
         }
     }
     return response, 201
@@ -45,7 +45,7 @@ def get_all_tasks():
                 "id": task.id,
                 "title": task.title,
                 "description": task.description,
-                "is_complete": is_complete(task.completed_at)
+                "is_complete": False
             }
         )
     return tasks_response, 200
@@ -59,7 +59,7 @@ def get_one_task(task_id):
         "id": task.id,
         "title": task.title,
         "description": task.description,
-        "is_complete": is_complete(task.completed_at)
+        "is_complete": False
     }
     return response, 200
 
@@ -76,9 +76,9 @@ def update_task(task_id):
     response = {
      "task": {
         "id": task.id,
-        "title": task.title ,
-        "description": task.description ,
-        "is_complete": is_complete(task.completed_at)
+        "title": task.title,
+        "description": task.description,
+        "is_complete": False
     }
 }
     return response, 200
