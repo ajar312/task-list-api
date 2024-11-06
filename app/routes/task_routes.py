@@ -2,10 +2,10 @@ from flask import Blueprint, abort, make_response, request, Response
 from app.models.task import Task
 from ..db import db
 from datetime import datetime
+from sqlalchemy import asc, desc
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
-# POST
 @tasks_bp.post("")
 def create_task():
     request_body = request.get_json()
@@ -23,12 +23,15 @@ def create_task():
     response = {"task": new_task.to_dict()}
     return response, 201
 
-# GET 
-# 1. As a client, I want to be able to make a `GET` request to `/tasks` when there is at least one saved task 
-
 @tasks_bp.get("")
 def get_all_tasks():
-    query = db.select(Task).order_by(Task.id)
+    query = db.select(Task)
+    sort_param = request.args.get("sort")
+    if sort_param == "asc":
+        query = db.select(Task).order_by(asc((Task.title)))
+    if sort_param == "desc":
+        query = db.select(Task).order_by(desc((Task.title))) 
+
     tasks = db.session.scalars(query)
     tasks_response = []
     for task in tasks:
@@ -42,8 +45,6 @@ def get_all_tasks():
         )
     return tasks_response, 200
 
-# As a client, I want to be able to make a `GET` request to `/tasks/1` when there is at least one saved task and get this response: 200 OK
-# review specs for an extra layer
 @tasks_bp.get("/<task_id>")
 def get_one_task(task_id):
     task = validate_task(task_id)
@@ -78,7 +79,6 @@ def delete_task(task_id):
 
     return response, 200
 
-# Validation functions
 def is_complete(completed_at):
     return False if completed_at is None else True
 
