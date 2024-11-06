@@ -2,7 +2,7 @@ from flask import Blueprint, abort, make_response, request, Response
 from app.models.task import Task
 from ..db import db
 from datetime import datetime
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, desc, DateTime
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -40,7 +40,7 @@ def get_all_tasks():
                 "id": task.id,
                 "title": task.title,
                 "description": task.description,
-                "is_complete": False
+                "is_complete": is_complete(task.completed_at) #--
             }
         )
     return tasks_response, 200
@@ -57,6 +57,7 @@ def update_task(task_id):
     request_body = request.get_json()
     task.title = request_body["title"]
     task.description = request_body["description"]
+    
     db.session.commit()
     response = {
      "task": {
@@ -78,6 +79,32 @@ def delete_task(task_id):
     }
 
     return response, 200
+# --------------------------------------------------------
+@tasks_bp.patch("/<task_id>/mark_complete")
+def complete_task(task_id):
+    task = validate_task(task_id)
+    task.completed_at = datetime.now()
+    db.session.commit()
+    response = {
+     "task": {
+        "id": task.id,
+        "title": task.title,
+        "description": task.description,
+        "is_complete": True
+    }
+}
+    return response, 200
+
+@tasks_bp.patch("/<task_id>/mark_incomplete")
+def update_not_completed_task(task_id):
+    task = validate_task(task_id)
+    task.completed_at = None
+    db.session.commit()
+    response_body = {"task": task.to_dict()}
+    return make_response(response_body, 200)
+
+#------------------------------------------------------
+
 
 def is_complete(completed_at):
     return False if completed_at is None else True
@@ -96,3 +123,23 @@ def validate_task(task_id):
         response = {"message": f"task {task_id} not found"}
         abort(make_response(response, 404))
     return task
+
+# @tasks_bp.patch("/<task_id>/mark_incomplete")
+# def update_task(task_id):
+#     task = validate_task(task_id)
+#     request_body = request.get_json()
+#     task.title = request_body["title"]
+#     task.description = request_body["description"]
+#     task.completed_at = None
+
+    
+#     db.session.commit()
+#     response = {
+#      "task": {
+#         "id": task.id,
+#         "title": task.title,
+#         "description": task.description,
+#         "is_complete": False
+#     }
+# }
+#     return response, 200
