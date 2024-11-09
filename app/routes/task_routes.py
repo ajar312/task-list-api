@@ -86,7 +86,7 @@ def delete_task(task_id):
 @tasks_bp.patch("/<task_id>/mark_complete")
 def complete_task(task_id):
     task = validate_task(task_id)
-    task.completed_at = datetime.now()
+    task.completed_at = str(datetime.now())
     db.session.commit()
     key = os.environ.get('SLACK_TOKEN')
     url = "https://slack.com/api/chat.postMessage"
