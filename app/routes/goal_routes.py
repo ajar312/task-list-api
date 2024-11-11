@@ -3,30 +3,25 @@ from flask import Blueprint, abort, make_response, request
 from app.models.goal import Goal
 from ..db import db
 
-goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
-
-
-@goals_bp.post("")
-
+bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
+@bp.post("")
 def create_goal():
     request_body = request.get_json()
+    
     if "title" not in request_body:
         response_body = {
         "details": "Invalid data"
         }
         return response_body, 400
     
-    title = request_body["title"]
-    
-    new_goal = Goal(title=title)
+    new_goal = Goal.from_dict(request_body)
     db.session.add(new_goal)
     db.session.commit()
-    
     response = {"goal": new_goal.to_dict()}
     return response, 201
 
 
-@goals_bp.get("")
+@bp.get("")
 def get_all_goals():
     query = db.select(Goal)
     goals = db.session.scalars(query)
@@ -40,13 +35,13 @@ def get_all_goals():
         )
     return goals_response, 200
 
-@goals_bp.get("/<goal_id>")
+@bp.get("/<goal_id>")
 def get_one_goal(goal_id):
     goal = validate_goal(goal_id)
     response_body = {"goal": goal.to_dict()}
     return response_body
 
-@goals_bp.put("/<goal_id>")
+@bp.put("/<goal_id>")
 def update_goal(goal_id):
     goal = validate_goal(goal_id)
     request_body = request.get_json()
@@ -62,7 +57,7 @@ def update_goal(goal_id):
 }
     return response, 200
 
-@goals_bp.delete("/<goal_id>")
+@bp.delete("/<goal_id>")
 def delete_goal(goal_id):
     goal = validate_goal(goal_id)
     db.session.delete(goal)

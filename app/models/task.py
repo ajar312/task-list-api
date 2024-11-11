@@ -10,9 +10,15 @@ class Task(db.Model):
 
     def to_dict(self):
         return dict(
-
         id=self.id,
         title=self.title,
         description=self.description,
         is_complete=bool(self.completed_at)
     )
+    @classmethod
+    def from_dict(cls, task_data):
+        new_goal = cls(
+            title=task_data['title'],
+            description=task_data['description'],
+            )
+        return new_goal

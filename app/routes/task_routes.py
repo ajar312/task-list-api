@@ -7,26 +7,23 @@ import os
 import requests
 import json
 
-tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
+bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
-@tasks_bp.post("")
+@bp.post("")
 def create_task():
     request_body = request.get_json()
     if "title" not in request_body or "description" not in request_body:
         response_body = {"details": "Invalid data"}
         return make_response(response_body, 400)
     
-    title = request_body["title"]
-    description = request_body["description"]
-    
-    new_task = Task(title=title, description=description)
+    new_task = Task.from_dict(request_body)
     db.session.add(new_task)
     db.session.commit()
     
     response = {"task": new_task.to_dict()}
     return response, 201
 
-@tasks_bp.get("")
+@bp.get("")
 def get_all_tasks():
     query = db.select(Task)
     sort_param = request.args.get("sort")
@@ -48,13 +45,13 @@ def get_all_tasks():
         )
     return tasks_response, 200
 
-@tasks_bp.get("/<task_id>")
+@bp.get("/<task_id>")
 def get_one_task(task_id):
     task = validate_task(task_id)
     response_body = {"task": task.to_dict()}
     return response_body
 
-@tasks_bp.put("/<task_id>")
+@bp.put("/<task_id>")
 def update_task(task_id):
     task = validate_task(task_id)
     request_body = request.get_json()
@@ -72,7 +69,7 @@ def update_task(task_id):
 }
     return response, 200
 
-@tasks_bp.delete("/<task_id>")
+@bp.delete("/<task_id>")
 def delete_task(task_id):
     task = validate_task(task_id)
     db.session.delete(task)
@@ -83,7 +80,7 @@ def delete_task(task_id):
 
     return response, 200
 
-@tasks_bp.patch("/<task_id>/mark_complete")
+@bp.patch("/<task_id>/mark_complete")
 def complete_task(task_id):
     task = validate_task(task_id)
     task.completed_at = str(datetime.now())
@@ -109,7 +106,7 @@ def complete_task(task_id):
 }
     return response, 200
 
-@tasks_bp.patch("/<task_id>/mark_incomplete")
+@bp.patch("/<task_id>/mark_incomplete")
 def update_not_completed_task(task_id):
     task = validate_task(task_id)
     task.completed_at = None
