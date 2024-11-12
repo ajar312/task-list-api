@@ -120,7 +120,7 @@ def is_complete(completed_at):
     return False if completed_at is None else True
 
 def normalize_task_response(task):
-    if 'goal' in task: del task['goal']
+    if 'goal_id' in task: del task['goal_id']
     return task
 
 def validate_task(task_id):

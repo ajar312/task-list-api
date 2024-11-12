@@ -81,16 +81,27 @@ def create_task_with_goal_id(goal_id):
     except KeyError as error:
         response = {"message": f"Invalid request: missing {error.args[0]}"}
         abort(make_response(response,400))
+    
     db.session.add(new_task)
     db.session.commit()
-
-    return new_task.to_dict(),201
+    tasks = [task.id for task in goal.tasks]
+    goal_dict = goal.to_dict()
+    response = {
+        "id": goal_dict["id"],
+        "task_ids": tasks,
+    }
+    return response,201
 
 @bp.get("/<goal_id>/tasks")
 def get_tasks_by_goal(goal_id):
     goal = validate_model(Goal,goal_id)
-    response= [task.to_dict() for task in goal.tasks]
-
+    tasks = [task.to_dict() for task in goal.tasks]
+    goal_dict = goal.to_dict();
+    response = {
+        "id": goal_dict["id"],
+        "title": goal_dict["title"],
+        "tasks": tasks
+    }
     return response
 
 def validate_goal(goal_id):
