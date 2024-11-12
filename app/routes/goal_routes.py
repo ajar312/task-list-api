@@ -1,6 +1,8 @@
 
 from flask import Blueprint, abort, make_response, request
 from app.models.goal import Goal
+from app.models.task import Task
+from .route_utilities import validate_model 
 from ..db import db
 
 bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
@@ -67,6 +69,29 @@ def delete_goal(goal_id):
     }
 
     return response, 200
+
+@bp.post("/<goal_id>/tasks")
+def create_task_with_goal_id(goal_id):
+    goal = validate_model(Goal,goal_id)
+    request_body = request.get_json()
+    request_body['goal_id'] = goal.id
+
+    try:
+        new_task = Task.from_dict(request_body)
+    except KeyError as error:
+        response = {"message": f"Invalid request: missing {error.args[0]}"}
+        abort(make_response(response,400))
+    db.session.add(new_task)
+    db.session.commit()
+
+    return new_task.to_dict(),201
+
+@bp.get("/<goal_id>/tasks")
+def get_tasks_by_goal(goal_id):
+    goal = validate_model(Goal,goal_id)
+    response= [task.to_dict() for task in goal.tasks]
+
+    return response
 
 def validate_goal(goal_id):
     try:

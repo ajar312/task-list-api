@@ -5,7 +5,6 @@ from datetime import datetime
 from sqlalchemy import asc, desc
 import os
 import requests
-import json
 
 bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -19,8 +18,8 @@ def create_task():
     new_task = Task.from_dict(request_body)
     db.session.add(new_task)
     db.session.commit()
-    
-    response = {"task": new_task.to_dict()}
+    task = normalize_task_response(new_task.to_dict())
+    response = {"task": task}
     return response, 201
 
 @bp.get("")
@@ -48,7 +47,8 @@ def get_all_tasks():
 @bp.get("/<task_id>")
 def get_one_task(task_id):
     task = validate_task(task_id)
-    response_body = {"task": task.to_dict()}
+    response_task = normalize_task_response(task.to_dict())
+    response_body = {"task": response_task}
     return response_body
 
 @bp.put("/<task_id>")
@@ -111,12 +111,17 @@ def update_not_completed_task(task_id):
     task = validate_task(task_id)
     task.completed_at = None
     db.session.commit()
-    response_body = {"task": task.to_dict()}
+    response_task = normalize_task_response(task.to_dict())
+    response_body = {"task": response_task}
     return make_response(response_body, 200)
 
 
 def is_complete(completed_at):
     return False if completed_at is None else True
+
+def normalize_task_response(task):
+    if 'goal' in task: del task['goal']
+    return task
 
 def validate_task(task_id):
     try:
