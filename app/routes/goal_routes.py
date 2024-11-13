@@ -9,7 +9,6 @@ bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
 @bp.post("")
 def create_goal():
     request_body = request.get_json()
-    
     if "title" not in request_body:
         response_body = {
         "details": "Invalid data"
@@ -75,9 +74,9 @@ def create_task_with_goal_id(goal_id):
     goal = validate_model(Goal,goal_id)
     request_body = request.get_json()
     request_body['goal_id'] = goal.id
-
     try:
         new_task = Task.from_dict(request_body)
+
     except KeyError as error:
         response = {"message": f"Invalid request: missing {error.args[0]}"}
         abort(make_response(response,400))
@@ -96,7 +95,7 @@ def create_task_with_goal_id(goal_id):
 def get_tasks_by_goal(goal_id):
     goal = validate_model(Goal,goal_id)
     tasks = [task.to_dict() for task in goal.tasks]
-    goal_dict = goal.to_dict();
+    goal_dict = goal.to_dict()
     response = {
         "id": goal_dict["id"],
         "title": goal_dict["title"],

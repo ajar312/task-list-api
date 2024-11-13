@@ -39,7 +39,7 @@ def get_all_tasks():
                 "id": task.id,
                 "title": task.title,
                 "description": task.description,
-                "is_complete": is_complete(task.completed_at) #--
+                "is_complete": is_complete(task.completed_at) 
             }
         )
     return tasks_response, 200
@@ -120,7 +120,8 @@ def is_complete(completed_at):
     return False if completed_at is None else True
 
 def normalize_task_response(task):
-    if 'goal_id' in task: del task['goal_id']
+    if task['goal_id']==None: 
+        del task['goal_id']
     return task
 
 def validate_task(task_id):
