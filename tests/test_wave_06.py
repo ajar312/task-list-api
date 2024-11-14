@@ -2,7 +2,7 @@ from app.models.goal import Goal
 import pytest
 
 
-@pytest.mark.skip(reason="No way to test this feature yet")
+#@pytest.mark.skip(reason="No way to test this feature yet")
 def test_post_task_ids_to_goal(client, one_goal, three_tasks):
     # Act
     response = client.post("/goals/1/tasks", json={
@@ -41,16 +41,20 @@ def test_post_task_ids_to_goal_already_with_goals(client, one_task_belongs_to_on
     assert len(Goal.query.get(1).tasks) == 2
 
 
-@pytest.mark.skip(reason="No way to test this feature yet")
+#@pytest.mark.skip(reason="No way to test this feature yet")
 def test_get_tasks_for_specific_goal_no_goal(client):
     # Act
-    response = client.get("/goals/1/tasks")
+    response = client.get("/goals/9/tasks")
     response_body = response.get_json()
-
+    
     # Assert
+    result =  {
+    "message": "Goal id 9 not found"
+}
+    assert response_body == result
     assert response.status_code == 404
 
-    raise Exception("Complete test with assertion about response body")
+    #raise Exception("Complete test with assertion about response body")
     # *****************************************************************
     # **Complete test with assertion about response body***************
     # *****************************************************************

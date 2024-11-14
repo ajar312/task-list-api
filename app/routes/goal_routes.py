@@ -73,23 +73,33 @@ def delete_goal(goal_id):
 def create_task_with_goal_id(goal_id):
     goal = validate_model(Goal,goal_id)
     request_body = request.get_json()
-    request_body['goal_id'] = goal.id
-    try:
-        new_task = Task.from_dict(request_body)
-
-    except KeyError as error:
-        response = {"message": f"Invalid request: missing {error.args[0]}"}
-        abort(make_response(response,400))
     
-    db.session.add(new_task)
-    db.session.commit()
-    tasks = [task.id for task in goal.tasks]
-    goal_dict = goal.to_dict()
-    response = {
-        "id": goal_dict["id"],
+    if 'title' in request_body and 'description' in request_body:
+        request_body['goal_id'] = goal.id
+        new_task = Task.from_dict(request_body)
+        db.session.add(new_task)
+        db.session.commit()
+        tasks = [task.id for task in goal.tasks]
+        response = {
+        "id": goal.id,
         "task_ids": tasks,
+        }
+        return response
+
+
+    task_ids = []
+    for task_id in request_body['task_ids']:
+        task = validate_model(Task,task_id)
+        task_ids.append(task.id)
+        goal.tasks.append(task)
+    
+    db.session.commit()
+    
+    response = {
+        "id": goal.id,
+        "task_ids": task_ids,
     }
-    return response,201
+    return response,200
 
 @bp.get("/<goal_id>/tasks")
 def get_tasks_by_goal(goal_id):
